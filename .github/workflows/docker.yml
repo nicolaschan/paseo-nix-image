@@ -1,0 +1,16 @@
+name: Docker
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  publish:
+    uses: nicolaschan/publish-nix-image/.github/workflows/build-push.yml@master
+    permissions:
+      contents: read
+      packages: write
+    with:
+      image: ghcr.io/nicolaschan/paseo-nix-image
