@@ -39,6 +39,7 @@
             extraPackages = [
               llm-agents.packages.${system}.opencode
               pkgs.gh
+              pkgs.git
             ];
             user = "paseo";
             extraDirectories = [
