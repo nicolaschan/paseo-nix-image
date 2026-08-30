@@ -25,11 +25,23 @@
         let
           pkgs = nixpkgs.legacyPackages.${system};
           mkAgentImage = agent-images.lib.mkAgentImage { inherit pkgs; };
+          paseoWithPty = paseo.packages.${system}.paseo.overrideAttrs (old: {
+            postInstall = (old.postInstall or "") + ''
+              ptyDir=$(find . -type d -path '*/node-pty/prebuilds' -print -quit)
+              if [ -z "$ptyDir" ]; then
+                echo "node-pty prebuilds not found in build tree" >&2
+                exit 1
+              fi
+              outPty="$out/lib/paseo/packages/server/node_modules/node-pty/prebuilds"
+              mkdir -p "$outPty"
+              cp -r "$ptyDir"/linux-* "$outPty/"
+            '';
+          });
         in
         {
           docker = mkAgentImage {
             name = "paseo";
-            agent = paseo.packages.${system}.paseo;
+            agent = paseoWithPty;
             entrypoint = [
               "paseo"
               "daemon"
@@ -39,6 +51,8 @@
             extraPackages = [
               llm-agents.packages.${system}.opencode
               pkgs.gh
+              pkgs.procps
+              pkgs.lbzip2
             ];
             user = "paseo";
             extraDirectories = [
